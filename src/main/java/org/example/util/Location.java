@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -34,9 +33,9 @@ public class Location {
             }
             in.close();
 
-            JsonObject jsonResponse = JsonParser.parseString(res.toString()).getAsJsonObject();
-            double lat = jsonResponse.get("lat").getAsDouble();
-            double lon = jsonResponse.get("lon").getAsDouble();
+            JsonObject json_response = JsonParser.parseString(res.toString()).getAsJsonObject();
+            double lat = json_response.get("lat").getAsDouble();
+            double lon = json_response.get("lon").getAsDouble();
 
             return new Point(lon, lat);
         } catch (IOException e) {

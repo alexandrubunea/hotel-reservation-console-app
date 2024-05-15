@@ -4,8 +4,7 @@
     "name": "Hotel Ramada",
     "latitude": 46.764654252624204,
     "longitude": 23.598674125224626,
-    "rooms":
-    [
+    "rooms": [
       {
         "roomNumber": 210,
         "type": 2,
@@ -28,8 +27,7 @@
     "name": "Grand Hotel Italia",
     "latitude": 46.7522792440665,
     "longitude": 23.605990381045697,
-    "rooms":
-    [
+    "rooms": [
       {
         "roomNumber": 41,
         "type": 3,
