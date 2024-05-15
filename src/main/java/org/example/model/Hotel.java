@@ -4,6 +4,8 @@ import org.example.util.Point;
 
 import java.util.ArrayList;
 
+import static org.example.util.Math.distance;
+
 /**
     * This class represents a hotel as an object.
 */
@@ -12,6 +14,7 @@ public class Hotel {
     private final String name;
     private final ArrayList<Room> rooms;
     private final Point location;
+    private double client_distance;
 
     /**
      * Creates a hotel project.
@@ -25,6 +28,7 @@ public class Hotel {
         this.name = name;
         this.rooms = rooms;
         this.location = location;
+        this.client_distance = 0;
     }
 
     public int getId() {
@@ -41,5 +45,13 @@ public class Hotel {
 
     public Point getLocation() {
         return location;
+    }
+
+    public double getClient_distance() {
+        return client_distance;
+    }
+
+    public void calculateClientDistance(Point client_position) {
+        client_distance = (int) distance(location, client_position);
     }
 }

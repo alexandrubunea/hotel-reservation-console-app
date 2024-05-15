@@ -65,7 +65,7 @@ public class HotelsLoader {
                     hotel_id,
                     hotel_name,
                     rooms,
-                    new Point(latitude, longitude)
+                    new Point(longitude, latitude)
                 ));
             }
 
