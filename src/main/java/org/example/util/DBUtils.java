@@ -19,7 +19,7 @@ public class DBUtils {
      * @return True - if the connection is valid / False - if the connection is faulty.
      */
     public static boolean test_connection() {
-        try(Connection conn = DriverManager.getConnection(CONNECTION_STRING)) {
+        try(Connection _ = DriverManager.getConnection(CONNECTION_STRING)) {
             return true;
         } catch (SQLException e) {
             printErrorMessage("There was a problem connecting to the database | " + e.getMessage());
@@ -73,13 +73,34 @@ public class DBUtils {
 
         try (PreparedStatement preparedStatement =
             DriverManager.getConnection(CONNECTION_STRING).prepareStatement(query)) {
-            preparedStatement.setString(1, review.getBooking().getHotel().getName());
+            preparedStatement.setString(1, review.getText());
             preparedStatement.setInt(2, review.getBooking().getId());
 
             preparedStatement.executeUpdate();
         }catch (SQLException e) {
             printErrorMessage("There was a problem trying to add a user review | " + e.getMessage());
         }
+    }
+
+    /**
+     * Check if a booking already have a review from the user.
+     * @param booking the booking to be checked
+     */
+    public static boolean doesReviewAlreadyExist(Booking booking) {
+        String query = "SELECT COUNT(*) AS cnt FROM Reviews WHERE booking = ?";
+
+        try (PreparedStatement preparedStatement =
+            DriverManager.getConnection(CONNECTION_STRING).prepareStatement(query)) {
+            preparedStatement.setInt(1, booking.getId());
+
+            ResultSet res = preparedStatement.executeQuery();
+            if(res.next()) {
+                return res.getInt("cnt") > 0;
+            }
+        }catch (SQLException e) {
+            printErrorMessage("There was a problem trying to check if a review already exist | " + e.getMessage());
+        }
+        return false;
     }
 
     /**
@@ -172,14 +193,13 @@ public class DBUtils {
         try(Connection conn = DriverManager.getConnection(CONNECTION_STRING)) {
             ResultSet res = conn.createStatement().executeQuery(query);
 
-            Booking booking = getBooking(res.getInt("booking"));
-
-            if (booking == null) {
-                printErrorMessage("There was an error trying to link a review to a booking.");
-                return null;
-            }
-
             while(res.next()) {
+                Booking booking = getBooking(res.getInt("booking"));
+                if (booking == null) {
+                    printErrorMessage("There was an error trying to link a review to a booking.");
+                    return null;
+                }
+
                 reviews.add(new Review(
                         res.getInt("id"),
                         res.getString("review"),
