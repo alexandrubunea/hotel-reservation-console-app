@@ -2,6 +2,7 @@ package org.example.menu;
 
 import org.apache.commons.lang3.StringUtils;
 import org.example.model.Hotel;
+import org.example.model.Room;
 import org.example.util.Point;
 
 import java.util.ArrayList;
@@ -49,7 +50,7 @@ public class Menu {
     /**
      * Prints the menu to access the hotels nearby.
      */
-    public static void printHotelsMenu() {
+    private static void printHotelsMenu() {
         ArrayList<Hotel> hotels = loadHotels("/src/main/resources/hotels.json/");
         double range = 0.0;
         Point client_position = getUserLocation();
@@ -60,20 +61,20 @@ public class Menu {
         hotels.sort(Comparator.comparingDouble(Hotel::getClient_distance));
 
         while (true) {
-            System.out.println(COLOR_FG_BLUE + "*" + COLOR_RESET + " Enter the radius you want the hotels to be in kilometers:");
+            printInfoMessage("Enter the radius you want the hotels to be (in kilometers): ");
             String input = System.console().readLine();
 
             try {
                 Double.parseDouble(input);
             } catch (NumberFormatException e) {
-                System.out.println(COLOR_FG_RED + "(!)" + COLOR_RESET + " You must type an valid number.");
+                printErrorMessage("You must type an valid number.");
                 continue;
             }
 
             range = Double.parseDouble(input) * 1000;
 
             if(range <= 0) {
-                System.out.println(COLOR_FG_RED + "(!)" + COLOR_RESET + " The radius must be greater than 0.");
+                printErrorMessage("The radius must be greater than 0.");
                 continue;
             }
 
@@ -87,12 +88,114 @@ public class Menu {
 
             ArrayList<Hotel> hotels_in_range = new ArrayList<Hotel>(hotels.subList(0, last_position));
             if(hotels_in_range.isEmpty()) {
-                System.out.println(COLOR_FG_RED + "(!)" + COLOR_RESET + "There are no hotels in this range.");
+                printErrorMessage("There are no more hotels in the range.");
                 continue;
             }
 
             printHotels(hotels_in_range);
+            printRoomsMenu(hotels_in_range);
             break;
         }
+    }
+
+    /**
+     * Prints the menu to access the rooms of a hotel
+     * @param hotels list of hotels
+     */
+    private static void printRoomsMenu(ArrayList<Hotel> hotels) {
+        System.out.println("\n");
+        printInfoMessage("Enter the ID of the hotel you want to see the rooms:");
+
+        ArrayList<Room> rooms;
+
+        while(true) {
+            String input = System.console().readLine();
+            if(!StringUtils.isNumeric(input)) {
+                printErrorMessage("You must type an valid number.");
+                continue;
+            }
+
+            int id = Integer.parseInt(input);
+            if(id < 0 || id >= hotels.size()) {
+                printErrorMessage("You must type a valid id.");
+                continue;
+            }
+
+            rooms = hotels.get(id - 1).getRooms();
+            printRooms(rooms);
+            break;
+        }
+
+        System.out.println("\n");
+        printInfoMessage("Select one of the options below: ");
+        System.out.println(
+            "\n\t" + COLOR_FG_BLUE + "[1]" + COLOR_RESET + " Book a room" +
+            "\n\t" + COLOR_FG_BLUE + "[2]" + COLOR_RESET + " Go back to the start menu");
+
+        while(true) {
+            String input = System.console().readLine();
+
+            if(!StringUtils.isNumeric(input)) {
+                printErrorMessage("You must type an valid number.");
+                continue;
+            }
+
+            int option = Integer.parseInt(input);
+            if(option == 1) {
+                printSelectRoomMenu(rooms);
+            }
+            else if(option == 2) {
+                MainMenu();
+            }
+            else {
+                printErrorMessage("This option doesn't exist.");
+                continue;
+            }
+
+            break;
+        }
+    }
+
+    /**
+     * Prints the menu for selecting a room to book.
+     * @param rooms the list of rooms.
+     */
+    private static void printSelectRoomMenu(ArrayList<Room> rooms) {
+        System.out.println("\n");
+        printInfoMessage("Type the number of the room you want to book: ");
+
+        while(true) {
+            String input = System.console().readLine();
+            if(!StringUtils.isNumeric(input)) {
+                printErrorMessage("You must type an valid number.");
+                continue;
+            }
+            int number = Integer.parseInt(input);
+
+            Room room_found = null;
+            for(Room room : rooms) {
+                if(room.getRoomNumber() == number) {
+                    room_found = room;
+                    break;
+                }
+            }
+
+            if(room_found == null) {
+                printErrorMessage("The room number you entered does not exist.");
+                continue;
+            }
+
+            printBookRoomMenu(room_found);
+
+            break;
+        }
+    }
+
+    /**
+     * Prints the menu to book a room.
+     * @param room the room to book.
+     */
+    private static void printBookRoomMenu(Room room) {
+        System.out.println("\n");
     }
 }
