@@ -1,10 +1,7 @@
 package org.example.util;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.example.model.Booking;
-import org.example.model.Hotel;
-import org.example.model.Review;
-import org.example.model.Room;
+import org.example.model.*;
 
 import java.sql.*;
 import java.time.LocalDateTime;

@@ -14,9 +14,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import static java.lang.Math.abs;
 import static org.example.util.Config.*;
-import static org.example.util.DBUtils.addBooking;
-import static org.example.util.DBUtils.getBookedDays;
+import static org.example.util.DBUtils.*;
 import static org.example.util.HotelsLoader.loadHotels;
 import static org.example.util.Location.getUserLocation;
 import static org.example.util.Text.*;
@@ -46,7 +46,7 @@ public class Menu {
                     is_running = false;
                     break;
                 case 2:
-                    printBookings();
+                    printUserBookings();
                     is_running = false;
                     break;
                 case 3:
@@ -382,6 +382,135 @@ public class Menu {
             break;
         }
         return res.toString();
+    }
+
+    /**
+     * Show user's past, running and future bookings.
+     */
+    private static void printUserBookings() {
+        ArrayList<Booking> user_bookings = getUserBookings();
+
+        if(user_bookings == null) {
+            return;
+        }
+
+        ArrayList<Booking> past_bookings = new ArrayList<>();
+        ArrayList<Booking> running_bookings = new ArrayList<>();
+        ArrayList<Booking> future_bookings = new ArrayList<>();
+
+        LocalDateTime current_date_time = LocalDateTime.now();
+
+        for(Booking booking : user_bookings) {
+            if(booking.getCheck_out().isBefore(current_date_time)) {
+                past_bookings.add(booking);
+            }
+            else if (booking.getCheck_out().isAfter(current_date_time)) {
+                if(booking.getCheck_in().isBefore(current_date_time)) {
+                    running_bookings.add(booking);
+                }
+                else {
+                    future_bookings.add(booking);
+                }
+            }
+        }
+
+        if(!past_bookings.isEmpty()) {
+            printInfoMessage("Your past bookings:\n");
+            printBookings(past_bookings);
+        }
+        if(!running_bookings.isEmpty()) {
+            printInfoMessage("Your bookings that are currently running:\n");
+            printBookings(running_bookings);
+        }
+        if(!future_bookings.isEmpty()) {
+            printInfoMessage("Your future bookings:\n");
+            printBookings(future_bookings);
+        }
+
+        System.out.println("\n");
+        while(true) {
+            printInfoMessage("Type the number of the option that you want to use:");
+            System.out.println(
+                "\n\t" + COLOR_FG_BLUE + "[1]" + COLOR_RESET + " Write a review for a past booking" +
+                "\n\t" + COLOR_FG_BLUE + "[2]" + COLOR_RESET + " Cancel a future booking" +
+                "\n\t" + COLOR_FG_BLUE + "[3]" + COLOR_RESET + " Return to previous menu");
+
+            String input = System.console().readLine();
+            if(!StringUtils.isNumeric(input)) {
+                printErrorMessage("You must type an valid number.");
+                continue;
+            }
+            int option = Integer.parseInt(input);
+
+            if(option < 1 || option > 3) {
+                continue;
+            }
+
+            if(option == 1) {
+                addReviewMenu(past_bookings);
+            }
+            else if(option == 2)
+            {
+                cancelFutureBooking(future_bookings);
+            }
+
+            break;
+        }
+
+        MainMenu();
+    }
+
+    /**
+     * Show the menu to cancel a future booking
+     * @param bookings the list with future bookings.
+     */
+    private static void cancelFutureBooking(ArrayList<Booking> bookings) {
+        printBookings(bookings);
+        Booking booking = null;
+        LocalDateTime current_date_time = LocalDateTime.now();
+
+        while(true) {
+            System.out.println("\n");
+            printInfoMessage("Type the ID of the booking that you want to cancel:");
+
+            String input = System.console().readLine();
+            if(!StringUtils.isNumeric(input)) {
+                printErrorMessage("You must type an valid number.");
+                continue;
+            }
+            int option = Integer.parseInt(input);
+
+            if (option < 1 || option > bookings.size()) {
+                printErrorMessage("The ID you have typed is invalid.");
+                continue;
+            }
+
+            booking = bookings.get(option - 1);
+
+            int hours = abs((int) ChronoUnit.HOURS.between(booking.getCheck_in(), current_date_time));
+            if(hours <= 2) {
+                printErrorMessage("You can't cancel a booking if the check in it's in less than two hours.");
+                continue;
+            }
+
+            break;
+        }
+
+        deleteBooking(booking);
+        try {
+            System.out.println("Your booking has been canceled.");
+            Thread.sleep(3000);
+            MainMenu();
+        } catch(InterruptedException e) {
+            printErrorMessage("Something went wrong trying to sleep a thread | " + e.getMessage());
+        }
+    }
+    /**
+     * Show the menu to add a review for a past booking
+     * @param bookings the list with past bookings.
+     */
+    private static void addReviewMenu(ArrayList<Booking> bookings) {
+
     }
 
     /**

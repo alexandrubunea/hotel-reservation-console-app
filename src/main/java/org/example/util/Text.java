@@ -76,33 +76,36 @@ public class Text {
         printInfoMessage("Type the number of the option that you want to use:");
         System.out.println(
             "\n\t" + COLOR_FG_BLUE + "[1]" + COLOR_RESET + " Book a hotel" +
-            "\n\t" + COLOR_FG_BLUE + "[2]" + COLOR_RESET + " My reservations" +
+            "\n\t" + COLOR_FG_BLUE + "[2]" + COLOR_RESET + " My bookings" +
             "\n\t" + COLOR_FG_BLUE + "[3]" + COLOR_RESET + " My reviews" +
             "\n\t" + COLOR_FG_BLUE + "[4]" + COLOR_RESET + " Exit");
     }
 
     /**
      * Print user's reservations.
+     * @param user_bookings the list of bookings.
      */
-    public static void printBookings() {
-        ArrayList<Booking> user_bookings = getUserBookings();
+    public static void printBookings(ArrayList<Booking> user_bookings) {
 
         if(user_bookings == null) {
             return;
         }
 
-        String leftAlignFormat = "| %-25s | %-5d | %-20s | %-18s | %-18s |%n";
+        String leftAlignFormat = "| %-3d | %-25s | %-5d | %-15s | %-18s | %-18s |%n";
 
-        System.out.format("+---------------------------+-------+----------------------+--------------------+--------------------+%n");
-        System.out.format("| Hotel                     | Room  | Room Type            | Check in           | Check out          |%n");
-        System.out.format("+---------------------------+-------+----------------------+--------------------+--------------------+%n");
+        System.out.format("+-----+---------------------------+-------+-----------------+--------------------+--------------------+%n");
+        System.out.format("| ID  | Hotel                     | Room  | Room Type       | Check in           | Check out          |%n");
+        System.out.format("+-----+---------------------------+-------+-----------------+--------------------+--------------------+%n");
+
+        int id = 1;
         for(Booking booking : user_bookings) {
-            System.out.format(leftAlignFormat, booking.getHotel().getName(), booking.getRoom().getRoomNumber(),
+            System.out.format(leftAlignFormat, id, booking.getHotel().getName(), booking.getRoom().getRoomNumber(),
                 booking.getRoom().getRoomType(),
                 booking.getCheck_in().format(DATE_TIME_FORMATTER_NORMAL),
                 booking.getCheck_out().format(DATE_TIME_FORMATTER_NORMAL));
+            id += 1;
         }
-        System.out.format("+---------------------------+-------+----------------------+--------------------+--------------------+%n");
+        System.out.format("+-----+---------------------------+-------+-----------------+--------------------+--------------------+%n");
     }
 
     public static void printHotelRoomBookings(ArrayList<Booking> bookings) {
