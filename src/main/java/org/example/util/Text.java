@@ -1,8 +1,13 @@
 package org.example.util;
 
 import java.util.ArrayList;
+
+import org.example.model.Booking;
 import org.example.model.Hotel;
 import org.example.model.Room;
+
+import static org.example.util.Config.DATE_TIME_FORMATTER_NORMAL;
+import static org.example.util.DBUtils.getUserBookings;
 
 /**
  * This class contains useful text scripts.
@@ -79,8 +84,42 @@ public class Text {
     /**
      * Print user's reservations.
      */
-    public static void printReservations() {
+    public static void printBookings() {
+        ArrayList<Booking> user_bookings = getUserBookings();
 
+        if(user_bookings == null) {
+            return;
+        }
+
+        String leftAlignFormat = "| %-25s | %-5d | %-20s | %-18s | %-18s |%n";
+
+        System.out.format("+---------------------------+-------+----------------------+--------------------+--------------------+%n");
+        System.out.format("| Hotel                     | Room  | Room Type            | Check in           | Check out          |%n");
+        System.out.format("+---------------------------+-------+----------------------+--------------------+--------------------+%n");
+        for(Booking booking : user_bookings) {
+            System.out.format(leftAlignFormat, booking.getHotel().getName(), booking.getRoom().getRoomNumber(),
+                booking.getRoom().getRoomType(),
+                booking.getCheck_in().format(DATE_TIME_FORMATTER_NORMAL),
+                booking.getCheck_out().format(DATE_TIME_FORMATTER_NORMAL));
+        }
+        System.out.format("+---------------------------+-------+----------------------+--------------------+--------------------+%n");
+    }
+
+    public static void printHotelRoomBookings(ArrayList<Booking> bookings) {
+        if(bookings.isEmpty()) {
+            return;
+        }
+
+        String leftAlignFormat = "| %-18s | %-18s |%n";
+
+        System.out.format("+--------------------+--------------------+%n");
+        System.out.format("| From               | To                 |%n");
+        System.out.format("+--------------------+--------------------+%n");
+        for(Booking booking : bookings) {
+            System.out.format(leftAlignFormat, booking.getCheck_in().format(DATE_TIME_FORMATTER_NORMAL),
+                booking.getCheck_out().format(DATE_TIME_FORMATTER_NORMAL));
+        }
+        System.out.format("+--------------------+--------------------+%n");
     }
 
     /**
@@ -90,6 +129,11 @@ public class Text {
     public static void printErrorMessage(String msg) {
         System.out.println(COLOR_FG_RED + "(!)" + COLOR_RESET + " " + msg);
     }
+
+    /**
+     * Prints an information message in a more "styled" way
+     * @param msg the message
+     */
     public static void printInfoMessage(String msg) {
         System.out.println(COLOR_FG_BLUE + "*" + COLOR_RESET + " " + msg);
     }

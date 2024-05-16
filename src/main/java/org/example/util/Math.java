@@ -1,7 +1,6 @@
 package org.example.util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import org.apache.commons.lang3.tuple.Pair;
 
 import static java.lang.Math.*;
 
@@ -19,9 +18,9 @@ public class Math {
         double delta_longitude = abs(a.getLongitude() - b.getLongitude());
         double delta_latitude = abs(a.getLatitude() - b.getLatitude());
 
-        ArrayList<Double> conversion = convertLatLon(a.getLatitude(), a.getLongitude());
-        double m_per_longitude = conversion.getFirst();
-        double m_per_latitude = conversion.get(1);
+        Pair<Double, Double> conversion = convertLatLon(a.getLatitude(), a.getLongitude());
+        double m_per_longitude = conversion.getLeft();
+        double m_per_latitude = conversion.getRight();
 
         return sqrt(pow(delta_longitude * m_per_longitude, 2) + pow(delta_latitude * m_per_latitude, 2));
     }
@@ -32,8 +31,7 @@ public class Math {
      * @param longitude the longitude.
      * @return a list that contains the meters per latitude and meters per longitude.
      */
-    private static ArrayList<Double> convertLatLon(double latitude, double longitude) {
-        // TODO: use Pair from apache instead of ArrayList
+    private static Pair<Double, Double> convertLatLon(double latitude, double longitude) {
         double longitude_radians = toRadians(longitude);
         double latitude_radians = toRadians(latitude);
 
@@ -42,6 +40,6 @@ public class Math {
         double m_per_latitude = 111132.92 - 559.82 * cos(2 * latitude_radians) + 1.175 * cos(4 * latitude_radians) -
                 0.0023 * cos(6 * latitude_radians);
 
-        return new ArrayList<Double>(Arrays.asList(m_per_longitude, m_per_latitude));
+        return Pair.of(m_per_longitude, m_per_latitude);
     }
 }

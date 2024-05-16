@@ -1,6 +1,6 @@
 package org.example.model;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * This class contains the booking object.
@@ -9,8 +9,8 @@ public class Booking {
     private final int id;
     private final Hotel hotel;
     private final Room room;
-    private final Date check_in;
-    private final Date check_out;
+    private final LocalDateTime check_in;
+    private final LocalDateTime check_out;
 
     /**
      * Creates a booking object
@@ -20,7 +20,7 @@ public class Booking {
      * @param check_in the check-in date-hour.
      * @param check_out the check-out date-hour.
      */
-    public Booking(int id, Hotel hotel, Room room, Date check_in, Date check_out) {
+    public Booking(int id, Hotel hotel, Room room, LocalDateTime check_in, LocalDateTime check_out) {
         this.id = id;
         this.hotel = hotel;
         this.room = room;
@@ -40,11 +40,11 @@ public class Booking {
         return room;
     }
 
-    public Date getCheck_in() {
+    public LocalDateTime getCheck_in() {
         return check_in;
     }
 
-    public Date getCheck_out() {
+    public LocalDateTime getCheck_out() {
         return check_out;
     }
 }

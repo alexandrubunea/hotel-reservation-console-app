@@ -1,13 +1,22 @@
 package org.example.menu;
 
 import org.apache.commons.lang3.StringUtils;
+import org.example.model.Booking;
 import org.example.model.Hotel;
 import org.example.model.Room;
 import org.example.util.Point;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import static org.example.util.Config.*;
+import static org.example.util.DBUtils.addBooking;
+import static org.example.util.DBUtils.getBookedDays;
 import static org.example.util.HotelsLoader.loadHotels;
 import static org.example.util.Location.getUserLocation;
 import static org.example.util.Text.*;
@@ -37,7 +46,7 @@ public class Menu {
                     is_running = false;
                     break;
                 case 2:
-                    printReservations();
+                    printBookings();
                     is_running = false;
                     break;
                 case 3:
@@ -111,12 +120,13 @@ public class Menu {
      * @param hotels list of hotels
      */
     private static void printRoomsMenu(ArrayList<Hotel> hotels) {
-        System.out.println("\n");
-        printInfoMessage("Enter the ID of the hotel you want to see the rooms:");
-
         ArrayList<Room> rooms;
+        Hotel hotel;
 
         while(true) {
+            System.out.println("\n");
+            printInfoMessage("Enter the ID of the hotel you want to see the rooms:");
+
             String input = System.console().readLine();
             if(!StringUtils.isNumeric(input)) {
                 printErrorMessage("You must type an valid number.");
@@ -129,8 +139,8 @@ public class Menu {
                 continue;
             }
 
-            rooms = hotels.get(id - 1).getRooms();
-            printRooms(rooms);
+            hotel = hotels.get(id - 1);
+            rooms = hotel.getRooms();
             break;
         }
 
@@ -150,7 +160,7 @@ public class Menu {
 
             int option = Integer.parseInt(input);
             if(option == 1) {
-                printSelectRoomMenu(rooms);
+                printSelectRoomMenu(hotel, rooms);
             }
             else if(option == 2) {
                 MainMenu();
@@ -168,11 +178,12 @@ public class Menu {
      * Prints the menu for selecting a room to book.
      * @param rooms the list of rooms.
      */
-    private static void printSelectRoomMenu(ArrayList<Room> rooms) {
-        System.out.println("\n");
-        printInfoMessage("Type the number of the room you want to book: ");
-
+    private static void printSelectRoomMenu(Hotel hotel, ArrayList<Room> rooms) {
         while(true) {
+            printRooms(rooms);
+            System.out.println("\n");
+            printInfoMessage("Type the number of the room you want to book: ");
+
             String input = System.console().readLine();
             if(!StringUtils.isNumeric(input)) {
                 printErrorMessage("You must type an valid number.");
@@ -193,7 +204,7 @@ public class Menu {
                 continue;
             }
 
-            printBookRoomMenu(room_found);
+            printBookRoomMenu(hotel, room_found);
 
             break;
         }
@@ -203,8 +214,174 @@ public class Menu {
      * Prints the menu to book a room.
      * @param room the room to book.
      */
-    private static void printBookRoomMenu(Room room) {
+    private static void printBookRoomMenu(Hotel hotel, Room room) {
         System.out.println("\n");
+
+        ArrayList<Booking> booked_time_frames = getBookedDays(hotel, room);
+        printInfoMessage("The dates in the table below are already booked, please choose a date outside this " +
+                "time frames");
+
+        printHotelRoomBookings(booked_time_frames);
+
+        LocalDateTime check_in = inputCheckIn(booked_time_frames);
+        LocalDateTime check_out = inputCheckOut(booked_time_frames);
+
+        addBooking(new Booking(
+                -1,
+                hotel,
+                room,
+                check_in,
+                check_out
+        ));
+
+        int days = (int) ChronoUnit.DAYS.between(check_in, check_out);
+        int price = room.getPrice() * days;
+        int option = -1;
+
+        while(true) {
+            printInfoMessage("The total price for your staying will be " + price + " RON. Do you want to proceed?");
+            System.out.println(
+                "\n\t" + COLOR_FG_BLUE + "[1]" + COLOR_RESET + " Yes" +
+                "\n\t" + COLOR_FG_BLUE + "[2]" + COLOR_RESET + " No");
+
+            String input = System.console().readLine();
+            if(!StringUtils.isNumeric(input)) {
+                printErrorMessage("You must type an valid number.");
+                continue;
+            }
+            option = Integer.parseInt(input);
+
+            if(option < 1 || option > 2) {
+                printErrorMessage("You must type an valid option.");
+                continue;
+            }
+
+            break;
+        }
+
+        if(option == 2) {
+            MainMenu();
+            return;
+        }
+
+        try {
+            System.out.println("Your booking has been registered.");
+            Thread.sleep(3000);
+            MainMenu();
+        } catch(InterruptedException e) {
+            printErrorMessage("Something went wrong trying to sleep a thread | " + e.getMessage());
+        }
+    }
+
+    /**
+     * Asks the user to input a check-in date and time
+     * @param bookings booking list
+     * @return the LocalDateTime that was given by the user
+     */
+    private static LocalDateTime inputCheckIn(ArrayList<Booking> bookings) {
+        LocalDateTime input = LocalDateTime.now();
+        while(true) {
+            try {
+                input = LocalDateTime.parse(inputDateTime("in"), DATE_TIME_FORMATTER);
+            } catch (DateTimeParseException e) {
+                printErrorMessage("Something went wrong while trying to parse user's input.");
+            }
+
+            if(isTimeFrameOverlapping(input, bookings)) {
+                printErrorMessage("This date is already booked.");
+                continue;
+            }
+
+            break;
+        }
+        return input;
+    }
+
+    /**
+     * Asks the user to input a check-out date and time
+     * @param bookings booking list
+     * @return the LocalDateTime that was given by the user
+     */
+    private static LocalDateTime inputCheckOut(ArrayList<Booking> bookings) {
+        LocalDateTime input = LocalDateTime.now();
+        while(true) {
+            try {
+                input = LocalDateTime.parse(inputDateTime("out"), DATE_TIME_FORMATTER);
+            } catch (DateTimeParseException e) {
+                printErrorMessage("Something went wrong while trying to parse user's input.");
+            }
+
+            if(isTimeFrameOverlapping(input, bookings)) {
+                printErrorMessage("This date is already booked.");
+                continue;
+            }
+
+            break;
+        }
+        return input;
+    }
+
+    /**
+     * Check if a give {@link LocalDateTime} is overlapping with a time frame in a {@link org.example.model.Booking} list
+     * @param date_time the date time to check
+     * @param bookings the booking list
+     * @return true if it's overlapping, false if it's not
+     */
+    private static boolean isTimeFrameOverlapping(LocalDateTime date_time, ArrayList<Booking> bookings) {
+        for(Booking booking : bookings) {
+            if(booking.getCheck_out().isAfter(date_time)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Reads a date and a time from the keyboard and validates them
+     * @param operation the operation will be "out" or "in", because the user can only check "in" or check "out"
+     * @return the date-time read from the keyboard
+     */
+    private static String inputDateTime(String operation) {
+        StringBuilder res;
+        String input;
+        LocalDateTime current_date_time = LocalDateTime.now();
+
+        while(true) {
+            res = new StringBuilder();
+
+            printInfoMessage("Enter the date you want to check " + operation + " [dd/mm/yyyy]:");
+            input = System.console().readLine();
+
+            if(!isValidDate(input)) {
+                printErrorMessage("You must enter a valid date.");
+                continue;
+            }
+            if(LocalDate.parse(input, DATE_FORMATTER).isBefore(current_date_time.toLocalDate())) {
+                printErrorMessage("You cannot enter a date in the past.");
+                continue;
+            }
+
+            printInfoMessage("Enter the hour you want to check " + operation + " [hh:mm]:");
+            res.append(input);
+            input = System.console().readLine();
+
+            if(!isValidTime(input)) {
+                printErrorMessage("You must enter a valid time.");
+                continue;
+            }
+
+            LocalDate date_time_input = LocalDate.parse(res.toString(), DATE_FORMATTER);
+
+            if(date_time_input.isEqual(current_date_time.toLocalDate()) &&
+                LocalTime.parse(input, TIME_FORMATTER).isBefore(current_date_time.toLocalTime())) {
+                printErrorMessage("You cannot enter a time in the past.");
+                continue;
+            }
+
+            res.append("T").append(input);
+            break;
+        }
+        return res.toString();
     }
 
     /**
@@ -212,5 +389,22 @@ public class Menu {
      */
     private static void printUserReviews() {
 
+    }
+
+    private static boolean isValidDate(String text) {
+        try {
+            LocalDate.parse(text, DATE_FORMATTER);
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+    }
+    private static boolean isValidTime(String text) {
+        try {
+            LocalTime.parse(text, TIME_FORMATTER);
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
     }
 }

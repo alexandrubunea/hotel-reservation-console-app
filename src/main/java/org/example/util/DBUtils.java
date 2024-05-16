@@ -7,6 +7,7 @@ import org.example.model.Review;
 import org.example.model.Room;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import static org.example.util.Config.*;
@@ -40,8 +41,8 @@ public class DBUtils {
             DriverManager.getConnection(CONNECTION_STRING).prepareStatement(query)) {
             preparedStatement.setInt(1, booking.getHotel().getId());
             preparedStatement.setInt(2, booking.getRoom().getRoomNumber());
-            preparedStatement.setString(3, booking.getCheck_in().toString());
-            preparedStatement.setString(4, booking.getCheck_out().toString());
+            preparedStatement.setString(3, booking.getCheck_in().format(DATE_TIME_FORMATTER));
+            preparedStatement.setString(4, booking.getCheck_out().format(DATE_TIME_FORMATTER));
 
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
@@ -54,7 +55,7 @@ public class DBUtils {
      * @param booking the booking to delete from the database.
      */
     public static void deleteBooking(Booking booking) {
-        String query = "UPDATE Bookings SET 'active' = 0 WHERE id = ?";
+        String query = "UPDATE Bookings SET active = 0 WHERE id = ?";
 
         try(PreparedStatement preparedStatement =
             DriverManager.getConnection(CONNECTION_STRING).prepareStatement(query)) {
@@ -90,7 +91,7 @@ public class DBUtils {
      */
     public static ArrayList<Booking> getUserBookings() {
         ArrayList<Booking> bookings = new ArrayList<>();
-        String query = "SELECT * FROM Bookings WHERE active = '1'";
+        String query = "SELECT * FROM Bookings WHERE active = 1";
 
         try(Connection conn = DriverManager.getConnection(CONNECTION_STRING)) {
             ResultSet res = conn.createStatement().executeQuery(query);
@@ -104,12 +105,56 @@ public class DBUtils {
                     return null;
                 }
 
+                LocalDateTime check_in = LocalDateTime.parse(res.getString("check_in"), DATE_TIME_FORMATTER);
+                LocalDateTime check_out = LocalDateTime.parse(res.getString("check_out"), DATE_TIME_FORMATTER);
+
                 bookings.add(new Booking(
                     res.getInt("id"),
                     hotel_and_room.getLeft(),
                     hotel_and_room.getRight(),
-                    res.getDate("check_in"),
-                    res.getDate("check_out")
+                    check_in,
+                    check_out
+                ));
+            }
+
+        } catch (SQLException e) {
+            printErrorMessage("There was a problem trying to get the user bookings | " + e.getMessage());
+        }
+
+        return bookings;
+    }
+
+    /**
+     * This function extracts from the database all the bookings for a room in a hotel.
+     * @param hotel the hotel where the extraction is applied.
+     * @param room the room where the extraction is applied.
+     * @return list of bookings that meet the requirement.
+     */
+    public static ArrayList<Booking> getBookedDays(Hotel hotel, Room room) {
+        ArrayList<Booking> bookings = new ArrayList<>();
+        String query = "SELECT * FROM Bookings WHERE active = 1 AND hotel_id = ? AND room_number = ?";
+        LocalDateTime current_date_time = LocalDateTime.now();
+
+        try(PreparedStatement preparedStatement =
+            DriverManager.getConnection(CONNECTION_STRING).prepareStatement(query)) {
+            preparedStatement.setInt(1, hotel.getId());
+            preparedStatement.setInt(2, room.getRoomNumber());
+
+            ResultSet res = preparedStatement.executeQuery();
+            while(res.next()) {
+                LocalDateTime check_in = LocalDateTime.parse(res.getString("check_in"), DATE_TIME_FORMATTER);
+                LocalDateTime check_out = LocalDateTime.parse(res.getString("check_out"), DATE_TIME_FORMATTER);
+
+                if(check_out.isBefore(current_date_time)) {
+                    continue;
+                }
+
+                bookings.add(new Booking(
+                        res.getInt("id"),
+                        hotel,
+                        room,
+                        check_in,
+                        check_out
                 ));
             }
 
@@ -150,6 +195,11 @@ public class DBUtils {
         return reviews;
     }
 
+    /**
+     * Gets a booking from database, based on the id
+     * @param id the id of the booking
+     * @return the booking as a {@link org.example.model.Booking} object.
+     */
     private static Booking getBooking(int id) {
         String query = "SELECT * FROM Bookings WHERE id = ?";
 
@@ -168,12 +218,15 @@ public class DBUtils {
                     return null;
                 }
 
+                LocalDateTime check_in = LocalDateTime.parse(res.getString("check_in"), DATE_TIME_FORMATTER);
+                LocalDateTime check_out = LocalDateTime.parse(res.getString("check_out"), DATE_TIME_FORMATTER);
+
                 return new Booking(
                         res.getInt("id"),
                         hotel_and_room.getLeft(),
                         hotel_and_room.getRight(),
-                        res.getDate("check_in"),
-                        res.getDate("check_out")
+                        check_in,
+                        check_out
                 );
             }
         } catch (SQLException e) {
