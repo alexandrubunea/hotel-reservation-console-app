@@ -72,7 +72,8 @@ public class Text {
         System.out.println(
             "\n\t" + COLOR_FG_BLUE + "[1]" + COLOR_RESET + " Book a hotel" +
             "\n\t" + COLOR_FG_BLUE + "[2]" + COLOR_RESET + " My reservations" +
-            "\n\t" + COLOR_FG_BLUE + "[3]" + COLOR_RESET + " Exit");
+            "\n\t" + COLOR_FG_BLUE + "[3]" + COLOR_RESET + " My reviews" +
+            "\n\t" + COLOR_FG_BLUE + "[4]" + COLOR_RESET + " Exit");
     }
 
     /**

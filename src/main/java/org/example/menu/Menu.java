@@ -41,6 +41,10 @@ public class Menu {
                     is_running = false;
                     break;
                 case 3:
+                    printUserReviews();
+                    is_running = false;
+                    break;
+                case 4:
                     is_running = false;
                     break;
             }
@@ -51,9 +55,13 @@ public class Menu {
      * Prints the menu to access the hotels nearby.
      */
     private static void printHotelsMenu() {
-        ArrayList<Hotel> hotels = loadHotels("/src/main/resources/hotels.json/");
+        ArrayList<Hotel> hotels = loadHotels();
         double range = 0.0;
         Point client_position = getUserLocation();
+
+        if(hotels == null) {
+            return;
+        }
 
         for(Hotel hotel : hotels) {
             hotel.calculateClientDistance(client_position);
@@ -197,5 +205,12 @@ public class Menu {
      */
     private static void printBookRoomMenu(Room room) {
         System.out.println("\n");
+    }
+
+    /**
+     * Prints user's reviews on past bookings.
+     */
+    private static void printUserReviews() {
+
     }
 }

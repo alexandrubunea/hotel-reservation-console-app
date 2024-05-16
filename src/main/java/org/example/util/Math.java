@@ -33,6 +33,7 @@ public class Math {
      * @return a list that contains the meters per latitude and meters per longitude.
      */
     private static ArrayList<Double> convertLatLon(double latitude, double longitude) {
+        // TODO: use Pair from apache instead of ArrayList
         double longitude_radians = toRadians(longitude);
         double latitude_radians = toRadians(latitude);
 
