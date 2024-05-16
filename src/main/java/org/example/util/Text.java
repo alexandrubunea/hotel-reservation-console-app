@@ -7,7 +7,6 @@ import org.example.model.Hotel;
 import org.example.model.Room;
 
 import static org.example.util.Config.DATE_TIME_FORMATTER_NORMAL;
-import static org.example.util.DBUtils.getUserBookings;
 
 /**
  * This class contains useful text scripts.

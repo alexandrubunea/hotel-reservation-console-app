@@ -41,5 +41,6 @@
         </list>
       </option>
     </inspection_tool>
+    <inspection_tool class="SameParameterValue" enabled="true" level="INFORMATION" enabled_by_default="true" />
   </profile>
 </component>
