@@ -70,7 +70,7 @@ public class Text {
             "▀▄▄ █▄▄ ▀▄█ ▀▄█   █ ▀█ █▀█ █▀  ▀▄▀ ▀▄▄ █▀█"
             + COLOR_RESET
             + "\n" +
-            "———————————————————————————————————————————————————————————");
+            "-------------------------------------------------------------------");
         System.out.println("\n");
         printInfoMessage("Type the number of the option that you want to use:");
         System.out.println(
